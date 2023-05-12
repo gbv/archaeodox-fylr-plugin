@@ -1,0 +1,42 @@
+plugin:
+  name: archaeodox
+  version: "2"
+  displayname:
+    de-DE: archaeoDox
+    en-US: archaeoDox
+  info:
+    de-DE: Benachrichtigt den archaeoDox-Servicer über neu erstellte Objekte
+    en-US: Notifies the archaeoDox servicer about newly created objects
+  webfrontend:
+    l10n: l10n/
+
+base_config:
+  - name: archaeodox
+    parameters:
+      servicer_url:
+        type: text
+        position: 0
+
+callbacks:
+  db_pre_save:
+    steps:
+      - name: "Notify servicer"
+        callback: check
+        filter:
+          type: objecttype
+          objecttypes:
+            - vorgang
+            - dokumente_extern
+    callbacks:
+      check:
+        exec:
+          service: "node"
+          commands:
+            - prog: "node"
+              stdin:
+                type: body
+              stdout:
+                type: body
+              args:
+                - type: "value"
+                  value: "%_exec.pluginDir%/src/server/check.js"

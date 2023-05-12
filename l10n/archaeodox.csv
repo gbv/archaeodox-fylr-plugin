@@ -1,0 +1,5 @@
+key,de-DE,en-US
+server.config.group.system.archaeodox.title,archaeoDox,archaeoDox
+server.config.parameter.system.archaeodox.servicer_url.label, Servicer-URL, Servicer URL
+server.config.group.system.archaeodox.introduction, Parameter für den Betrieb des archaeoDox-Plugins, archaeoDox plugin operational parameters
+server.config.name.system.archaeodox, URL, URL
