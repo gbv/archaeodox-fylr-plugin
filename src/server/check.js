@@ -22,7 +22,7 @@ process.stdin.on('end', async () => {
     console.log(JSON.stringify({'objects': []}));
     console.error('No changes');
     process.exit(0);
-    return
+    return;
 });
 
 
@@ -46,8 +46,10 @@ function getServicerUrl(data) {
     const servicerUrl = data.info?.config?.plugin?.archaeodox?.config?.archaeodox?.servicer_url;
     
     if (!servicerUrl) {
-        console.error('No configured servicer URL for archaeoDox plugin');
-        process.exit(1);
+        throwErrorToFrontend(
+            'Die Servicer-URL wurde nicht angegeben.',
+            'Bitte tragen Sie die Servicer-URL in den Basiseinstellungen unter "archaeoDox" ein.'
+        );
     }
 
     return servicerUrl;
@@ -56,16 +58,38 @@ function getServicerUrl(data) {
 
 async function callServicer(servicerUrl, object) {
 
+    let failed = false;
+
     try {
         let response = await fetch(servicerUrl + '/handle-new-objects/' + object._objecttype, {
             method: 'POST'
         });
-        if (!response.ok) {
-            console.error(response);
-            process.exit(1);
-        }
+        if (!response.ok) failed = true;
     } catch (error) {
-        console.error(error);
-        process.exit(1);
+        failed = true;
     }
+
+    if (failed) {
+        throwErrorToFrontend(
+            'Der archaeoDox-Servicer konnte nicht erreicht werden.',
+            'Bitte versuchen Sie es zu einem späteren Zeitpunkt erneut und wenden Sie sich gegebenenfalls an die Administration.'
+        );
+    }
+}
+
+
+function throwErrorToFrontend(error, description) {
+
+    console.log(JSON.stringify({
+        error: {
+            code: 'error.archaeoDox',
+            statuscode: 400,
+            realm: 'api',
+            error,
+            parameters: {},
+            description
+        }
+    }));
+
+    process.exit(0);
 }
