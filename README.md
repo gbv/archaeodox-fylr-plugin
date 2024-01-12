@@ -4,18 +4,13 @@ This plugin is part of the archaeoDox system and allows notifying an external [s
 
 # Installation
 
-1. Go to the Fylr plugin directory and clone this repository.
+The latest version of this plugin can be found [here](https://github.com/gbv/archaeodox-fylr-plugin/releases/latest/download/archaeoDoxFylrPlugin.zip). The ZIP can be downloaded and installed using the plugin manager or used directly (recommended).
 
-2. Load the submodule [easydb-library](https://github.com/programmfabrik/easydb-library):
+Or install manually:
 
-```
-git submodule update --init --recursive
-```
-
-3. Create translation files:
-
+1. Clone repository
+2. Build plugin:
 ```
 make
 ```
-
-4. Restart Fylr
+3. Upload ZIP file from directory "build" in Fylr plugin manager
