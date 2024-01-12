@@ -1,16 +1,22 @@
-L10N_FILES = l10n/archaeodox.csv
+ZIP_NAME = archaeoDoxFylrPlugin.zip
 PLUGIN_NAME = archaeodox
-INSTALL_FILES = \
-	$(WEB)/l10n/cultures.json \
-	$(WEB)/l10n/de-DE.json \
-	$(WEB)/l10n/en-US.json \
 
-all: build
+all: build zip
 
-include easydb-library/tools/base-plugins.make
+build: clean
+	mkdir -p build
+	mkdir -p build/$(PLUGIN_NAME)
+	mkdir -p build/$(PLUGIN_NAME)/server
+	mkdir -p build/$(PLUGIN_NAME)/l10n
 
-build: code
+	cp src/server/callServicer.js build/${PLUGIN_NAME}/server/callServicer.js
+	cp l10n/$(PLUGIN_NAME).csv build/$(PLUGIN_NAME)/l10n/$(PLUGIN_NAME).csv
+	cp manifest.master.yml build/$(PLUGIN_NAME)/manifest.yml
 
-code: $(L10N)
+clean:
+	rm -rf build
 
-clean: clean-base
+zip:
+	cd build && zip $(ZIP_NAME) -r $(PLUGIN_NAME)/
+	cp -r build/$(PLUGIN_NAME)/* build/
+	rm -rf build/${PLUGIN_NAME}
