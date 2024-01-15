@@ -29,8 +29,8 @@ process.stdin.on('end', async () => {
 async function processInput(input) {
 
     try {
+        const servicerUrl = await getServicerUrl();
         const data = JSON.parse(input);
-        const servicerUrl = getServicerUrl(data);
         for (let object of data.objects) {
             await callServicer(servicerUrl, object);
         }
@@ -41,9 +41,10 @@ async function processInput(input) {
 }
 
 
-function getServicerUrl(data) {
+async function getServicerUrl() {
 
-    const servicerUrl = data.info?.config?.plugin?.archaeodox?.config?.archaeodox?.servicer_url;
+    const pluginConfiguration = await getPluginConfiguration();
+    const servicerUrl = pluginConfiguration.servicer_url.ValueText;
     
     if (!servicerUrl) {
         throwErrorToFrontend(
@@ -53,6 +54,33 @@ function getServicerUrl(data) {
     }
 
     return servicerUrl;
+}
+
+
+async function getPluginConfiguration() {
+
+    const baseConfiguration = await getBaseConfiguration();
+    return baseConfiguration.BaseConfigList.find(section => section.Name === 'archaeodox').Values;
+}
+
+
+async function getBaseConfiguration() {
+
+    const url = 'http://fylr.localhost:8082/inspect/config';
+    const headers = { 'Accept': 'application/json' };
+
+    let response;
+    try {
+        response = await fetch(url, { headers });
+    } catch {
+        throwErrorToFrontend('Die Basiskonfiguration konnte nicht geladen werden.');
+    }
+
+    if (response.ok) {
+        return response.json();
+    } else {
+        throwErrorToFrontend('Die Basiskonfiguration konnte nicht geladen werden.', response.statusText);
+    }
 }
 
 
