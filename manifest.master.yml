@@ -15,6 +15,13 @@ base_config:
       servicer_url:
         type: text
         position: 0
+      object_types:
+        type: table
+        fields:
+          - name: name
+            type: text
+            position: 0
+        position: 1
 
 callbacks:
   db_pre_save:

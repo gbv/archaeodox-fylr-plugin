@@ -30,9 +30,10 @@ async function processInput(input) {
 
     try {
         const servicerUrl = await getServicerUrl();
+        const objectTypes = await getObjectTypes();
         const data = JSON.parse(input);
         for (let object of data.objects) {
-            await processObject(object, servicerUrl);
+            await processObject(object, servicerUrl, objectTypes);
         }
     } catch (error) {
         console.error(`Could not parse input: ${error.message}`, error.stack);
@@ -41,9 +42,9 @@ async function processInput(input) {
 }
 
 
-async function processObject(object, servicerUrl) {
+async function processObject(object, servicerUrl, objectTypes) {
 
-    if (!isNewObject(object)) return;
+    if (!isNewObject(object) || !hasConfiguredObjectType(object, objectTypes)) return;
 
     await callServicer(object, servicerUrl);
 }
@@ -62,6 +63,25 @@ async function getServicerUrl() {
     }
 
     return servicerUrl;
+}
+
+
+async function getObjectTypes() {
+
+    const pluginConfiguration = await getPluginConfiguration();
+    const objectTypes = pluginConfiguration.object_types?.ValueTable
+        ?.map(objectType => objectType?.name?.ValueText)
+        .filter(name => name);
+    
+    if (!objectTypes?.length) {
+        throwErrorToFrontend(
+            'Es wurden keine Objekttypen konfiguriert.',
+            'Bitte geben Sie in den Basiseinstellungen unter "archaeoDox" die Objekttypen an, ' +
+                'für die der Servicer benachrichtigt werden soll.'
+        );
+    }
+
+    return objectTypes;
 }
 
 
@@ -117,6 +137,12 @@ async function callServicer(object, servicerUrl) {
 function isNewObject(object) {
 
     return !object._uuid;
+}
+
+
+function hasConfiguredObjectType(object, objectTypes) {
+
+    return (objectTypes.includes(object._objecttype));
 }
 
 
