@@ -32,12 +32,20 @@ async function processInput(input) {
         const servicerUrl = await getServicerUrl();
         const data = JSON.parse(input);
         for (let object of data.objects) {
-            await callServicer(servicerUrl, object);
+            await processObject(object, servicerUrl);
         }
     } catch (error) {
         console.error(`Could not parse input: ${error.message}`, error.stack);
         process.exit(1);
     }
+}
+
+
+async function processObject(object, servicerUrl) {
+
+    if (!isNewObject(object)) return;
+
+    await callServicer(object, servicerUrl);
 }
 
 
@@ -84,7 +92,7 @@ async function getBaseConfiguration() {
 }
 
 
-async function callServicer(servicerUrl, object) {
+async function callServicer(object, servicerUrl) {
 
     let failed = false;
 
@@ -103,6 +111,12 @@ async function callServicer(servicerUrl, object) {
             'Bitte versuchen Sie es zu einem späteren Zeitpunkt erneut und wenden Sie sich gegebenenfalls an die Administration.'
         );
     }
+}
+
+
+function isNewObject(object) {
+
+    return !object._uuid;
 }
 
 
