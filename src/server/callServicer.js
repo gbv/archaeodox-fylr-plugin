@@ -1,7 +1,4 @@
-let info = undefined;
-if (process.argv.length >= 3) {
-    info = JSON.parse(process.argv[2])
-}
+const crypto = require('crypto');
 
 
 let input = '';
@@ -17,12 +14,14 @@ process.stdin.on('data', d => {
 
 process.stdin.on('end', async () => {
 
-    await processInput(input);
+    const changedObjects = await processInput(input);
 
-    console.log(JSON.stringify({'objects': []}));
-    console.error('No changes');
-    process.exit(0);
-    return;
+    console.log(JSON.stringify({ objects: changedObjects }));
+
+    if (!changedObjects.length) {
+        console.error('No changes');
+        process.exit(0);
+    }
 });
 
 
@@ -32,9 +31,14 @@ async function processInput(input) {
         const servicerUrl = await getServicerUrl();
         const objectTypes = await getObjectTypes();
         const data = JSON.parse(input);
+
+        const changedObjects = [];
         for (let object of data.objects) {
-            await processObject(object, servicerUrl, objectTypes);
+            if (await processObject(object, servicerUrl, objectTypes)) {
+                changedObjects.push(object);
+            }
         }
+        return changedObjects;
     } catch (error) {
         console.error(`Could not parse input: ${error.message}`, error.stack);
         process.exit(1);
@@ -44,9 +48,12 @@ async function processInput(input) {
 
 async function processObject(object, servicerUrl, objectTypes) {
 
-    if (!isNewObject(object) || !hasConfiguredObjectType(object, objectTypes)) return;
+    if (!isNewObject(object) || !hasConfiguredObjectType(object, objectTypes)) return false;
 
+    addServicerRequestId(object);
     await callServicer(object, servicerUrl);
+
+    return true;
 }
 
 
@@ -112,14 +119,28 @@ async function getBaseConfiguration() {
 }
 
 
+function addServicerRequestId(object) {
+
+    object[object._objecttype].servicer_request_id = createServicerRequestId();
+}
+
+
+function createServicerRequestId() {
+
+    return crypto.randomBytes(20).toString('hex');
+}
+
+
 async function callServicer(object, servicerUrl) {
+
+    const url = servicerUrl + '/handle-new-object/'
+        + object._objecttype + '/'
+        + object[object._objecttype].servicer_request_id;
 
     let failed = false;
 
     try {
-        let response = await fetch(servicerUrl + '/handle-new-objects/' + object._objecttype, {
-            method: 'POST'
-        });
+        let response = await fetch(url, { method: 'POST' });
         if (!response.ok) failed = true;
     } catch (error) {
         failed = true;
