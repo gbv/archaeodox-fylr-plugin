@@ -1,0 +1,10 @@
+server:
+  install:
+  - l10n/archaeodox.csv
+  bundles:
+    - out: server/callServicer.js
+      sources:
+      - src/server/callServicer.js
+
+zip_aliases:
+- archaeoDoxFylrPlugin.zip
