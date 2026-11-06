@@ -1,5 +1,8 @@
 const crypto = require('crypto');
 
+const info = process.argv.length >= 3
+    ? JSON.parse(process.argv[2])
+    : {};
 
 let input = '';
 process.stdin.on('data', d => {
@@ -60,7 +63,7 @@ async function processObject(object, servicerUrl, objectTypes) {
 async function getServicerUrl() {
 
     const pluginConfiguration = await getPluginConfiguration();
-    const servicerUrl = pluginConfiguration.servicer_url.ValueText;
+    const servicerUrl = pluginConfiguration.servicer_url;
     
     if (!servicerUrl) {
         throwErrorToFrontend(
@@ -76,8 +79,8 @@ async function getServicerUrl() {
 async function getObjectTypes() {
 
     const pluginConfiguration = await getPluginConfiguration();
-    const objectTypes = pluginConfiguration.object_types?.ValueTable
-        ?.map(objectType => objectType?.name?.ValueText)
+    const objectTypes = pluginConfiguration.object_types
+        ?.map(objectType => objectType?.name)
         .filter(name => name);
     
     if (!objectTypes?.length) {
@@ -92,30 +95,9 @@ async function getObjectTypes() {
 }
 
 
-async function getPluginConfiguration() {
+function getPluginConfiguration() {
 
-    const baseConfiguration = await getBaseConfiguration();
-    return baseConfiguration.BaseConfigList.find(section => section.Name === 'archaeodox').Values;
-}
-
-
-async function getBaseConfiguration() {
-
-    const url = 'http://fylr.localhost:8082/inspect/config';
-    const headers = { 'Accept': 'application/json' };
-
-    let response;
-    try {
-        response = await fetch(url, { headers });
-    } catch {
-        throwErrorToFrontend('Die Basiskonfiguration konnte nicht geladen werden.');
-    }
-
-    if (response.ok) {
-        return response.json();
-    } else {
-        throwErrorToFrontend('Die Basiskonfiguration konnte nicht geladen werden.', response.statusText);
-    }
+    return info.config.plugin['archaeodox'].config.archaeodox;
 }
 
 

@@ -47,3 +47,5 @@ callbacks:
               args:
                 - type: "value"
                   value: "%_exec.pluginDir%/server/callServicer.js"
+                - type: "value"
+                  value: "%info.json%"
